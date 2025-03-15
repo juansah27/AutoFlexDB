@@ -1,0 +1,23 @@
+[
+    {
+        "username": "admin",
+        "name": "admin",
+        "password": "e899c0ca6aa7740ad6de8d2806b1fcd37fb22db62172eba1bd4c460c3f88a009:00e88d97ce386711",
+        "role": "admin",
+        "created_at": "2025-03-08 01:59:28"
+    },
+    {
+        "username": "guest",
+        "name": "Guest User",
+        "password": "99644f4e2494a6f21adcd8789ea9ec99482b421918fe167ecced601c56041ec2:b7702fc090a7ce09",
+        "role": "guest",
+        "created_at": "2025-03-08 19:49:16"
+    },
+    {
+        "username": "system",
+        "name": "system",
+        "password": "a631c0d94d702f00f35397f6a4896f94a952fdefeead12eefc40fe175e4795dc:40b4f5862135c331",
+        "role": "user",
+        "created_at": "2025-03-13 16:08:47"
+    }
+]

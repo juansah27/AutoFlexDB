@@ -1,0 +1,191 @@
+/* Gaya tambahan untuk halaman database */
+
+/* Header dengan tombol kembali */
+header .actions {
+    display: flex;
+    align-items: center;
+}
+
+header .actions .btn {
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+/* Tabel data */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
+    background-color: #222;
+    border-radius: var(--border-radius);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-color);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+th {
+    background-color: #282828;
+    color: var(--accent-color);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+tr:hover {
+    background-color: #2a2a2a;
+}
+
+.loading-row td {
+    text-align: center;
+    padding: 30px 0;
+    color: #777;
+}
+
+/* Tools pencarian dan refresh */
+.table-tools {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.search-container {
+    position: relative;
+    width: 250px;
+}
+
+.search-container input {
+    padding: 8px 12px 8px 35px;
+    width: 100%;
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+}
+
+.search-container i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 16px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.btn-icon:hover {
+    background-color: rgba(255, 128, 0, 0.1);
+}
+
+.btn-icon:disabled {
+    color: #777;
+    cursor: not-allowed;
+}
+
+/* Tombol aksi pada tabel */
+.action-btn {
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: color 0.3s;
+}
+
+.action-btn.edit:hover {
+    color: var(--accent-color);
+}
+
+.action-btn.delete:hover {
+    color: var(--danger-color);
+}
+
+/* Paginasi */
+.table-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    color: #777;
+    font-size: 14px;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#currentPage {
+    display: inline-block;
+    width: 30px;
+    text-align: center;
+    color: var(--text-color);
+}
+
+/* Tombol dalam modal */
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+#deleteItemDetails {
+    background-color: rgba(231, 76, 60, 0.1);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    color: var(--danger-color);
+    margin: 15px 0;
+}
+
+/* Responsif */
+@media (max-width: 768px) {
+    .table-tools {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .table-pagination {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+} 

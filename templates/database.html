@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Database - All In One Setting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-database"></i>
+                <h1>Manajemen Database Shop ID</h1>
+            </div>
+            <div class="actions">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Kembali ke Beranda
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <div class="card input-section">
+                <h2><i class="fas fa-plus-circle"></i> Tambah Data Baru</h2>
+                <form id="addMappingForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="marketplace">Marketplace:</label>
+                            <input type="text" id="marketplace" name="marketplace" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="client">Client:</label>
+                            <input type="text" id="client" name="client" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="shopId">Shop ID:</label>
+                            <input type="text" id="shopId" name="shopId" required>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card import-section">
+                <h2><i class="fas fa-file-import"></i> Import Data</h2>
+                <form id="importForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="importFile">Pilih File Excel:</label>
+                        <div class="file-input-container">
+                            <input type="file" id="importFile" name="file" accept=".xlsx,.xls" required>
+                            <label for="importFile" class="file-label">
+                                <i class="fas fa-file-excel"></i>
+                                <span id="importFileName">Pilih File</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Import Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card data-section">
+                <h2><i class="fas fa-table"></i> Data Shop ID Mapping</h2>
+                
+                <div class="table-tools">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Cari...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="refresh-container">
+                        <button id="refreshButton" class="btn-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="mappingTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Marketplace</th>
+                                <th>Client</th>
+                                <th>Shop ID</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mappingTableBody">
+                            <!-- Data akan dimuat melalui JavaScript -->
+                            <tr class="loading-row">
+                                <td colspan="5">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-pagination">
+                    <span id="paginationInfo">Menampilkan 0-0 dari 0 data</span>
+                    <div class="pagination-controls">
+                        <button id="prevPageBtn" class="btn-icon" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="currentPage">1</span>
+                        <button id="nextPageBtn" class="btn-icon" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Dibuat Oleh Handiyan Juansah &copy; 2025</p>
+        </footer>
+    </div>
+
+    <!-- Modal konfirmasi hapus -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Konfirmasi Hapus</h2>
+            <div class="info-content">
+                <p>Apakah Anda yakin ingin menghapus data ini?</p>
+                <p id="deleteItemDetails"></p>
+                <div class="modal-buttons">
+                    <button id="confirmDeleteBtn" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                    <button id="cancelDeleteBtn" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/database.js') }}"></script>
+</body>
+</html> 

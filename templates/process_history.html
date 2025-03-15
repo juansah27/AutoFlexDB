@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Pemrosesan - All In One Setting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #FF8000;
+            --secondary-color: #333333;
+            --accent-color: #FFA500;
+            --bg-color: #181818;
+            --text-color: #FFFFFF;
+            --card-bg: #333333;
+            --border-color: #444444;
+            --success-color: #2ECC71;
+            --danger-color: #E74C3C;
+            --info-color: #3498DB;
+            --warning-color: #F39C12;
+        }
+
+        /* Style untuk komponen download template */
+        .template-download {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+        
+        .template-download select {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        
+        .table-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* Style untuk tooltip */
+        .template-tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 8px;
+            color: var(--info-color);
+            cursor: help;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 5px;
+            border-radius: 4px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+        
+        .template-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Responsif untuk mobile */
+        @media (max-width: 768px) {
+            .template-download {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .table-tools {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-container, .refresh-container {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-history"></i>
+                <h1>Riwayat Pemrosesan File</h1>
+            </div>
+            <div class="actions">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Kembali ke Beranda
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <div class="card data-section">
+                <h2><i class="fas fa-table"></i> Data Riwayat Pemrosesan</h2>
+                
+                <div class="table-tools">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Cari...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="refresh-container">
+                        <button id="refreshButton" class="btn-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="template-download">
+                        <select id="templateTypeSelect" class="form-select">
+                            <option value="Bundle">Bundle</option>
+                            <option value="Supplementary">Supplementary</option>
+                            <option value="Gift">Gift</option>
+                        </select>
+                        <button id="downloadTemplateBtn" class="btn btn-outline-info" data-tooltip="Unduh template kosong untuk digunakan sebagai format file input">
+                            <i class="fas fa-download"></i> Template
+                        </button>
+                        <div class="template-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-text">Unduh template kosong sebagai acuan format data</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama File</th>
+                                <th>Jenis Proses</th>
+                                <th>Client</th>
+                                <th>Pembuat</th>
+                                <th>Waktu Proses</th>
+                                <th>Jumlah Sheet</th>
+                                <th>Jumlah Record</th>
+                                <th>File Output</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Data akan dimuat melalui JavaScript -->
+                            <tr class="loading-row">
+                                <td colspan="10">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-pagination">
+                    <span id="paginationInfo">Menampilkan 0-0 dari 0 data</span>
+                    <div class="pagination-controls">
+                        <button id="prevPageBtn" class="btn-icon" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="currentPage">1</span>
+                        <button id="nextPageBtn" class="btn-icon" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Dibuat Oleh Handiyan Juansah &copy; 2025</p>
+        </footer>
+    </div>
+
+    <!-- Modal konfirmasi hapus -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Konfirmasi Hapus</h2>
+            <div class="info-content">
+                <p>Apakah Anda yakin ingin menghapus data riwayat ini?</p>
+                <p id="deleteItemDetails"></p>
+                <div class="modal-buttons">
+                    <button id="confirmDeleteBtn" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                    <button id="cancelDeleteBtn" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/process_history.js') }}"></script>
+</body>
+</html> 

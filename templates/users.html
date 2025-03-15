@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Pengguna - All In One Setting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .user-action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .user-action-buttons button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th,
+        .user-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        
+        .user-table th {
+            background-color: #222;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        .user-table tr:hover {
+            background-color: #222;
+        }
+        
+        .user-table .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-admin {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .badge-user {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 5px solid #333;
+            border-radius: 50%;
+            border-top: 5px solid var(--accent-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--accent-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .confirm-delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .cancel-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .error-message,
+        .success-message {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+        
+        .success-message {
+            background-color: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+        
+        .message i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-users-cog"></i>
+                <h1>Manajemen Pengguna</h1>
+            </div>
+            <div class="actions">
+                <button id="addUserBtn" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Tambah Pengguna
+                </button>
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Kembali ke Beranda
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <div class="card" id="userManagement">
+                <h2><i class="fas fa-users"></i> Daftar Pengguna</h2>
+                
+                <div id="messageContainer" style="display: none;"></div>
+                
+                <div id="userTableContainer">
+                    <div class="loading-indicator">
+                        <div class="spinner"></div>
+                        <p>Memuat daftar pengguna...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Dibuat Oleh Handiyan Juansah &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <!-- Modal Tambah Pengguna -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Tambah Pengguna Baru</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div id="addUserMessage" style="display: none;"></div>
+            
+            <form id="addUserForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Masukkan username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fullName">Nama Lengkap</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Masukkan nama lengkap" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Masukkan password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn cancel-btn" id="cancelAddBtn">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Konfirmasi Hapus -->
+    <div id="deleteUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-trash-alt"></i> Hapus Pengguna</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <p>Apakah Anda yakin ingin menghapus pengguna <strong id="deleteUserName"></strong>?</p>
+            <p>Tindakan ini tidak dapat dibatalkan.</p>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" id="cancelDeleteBtn">Batal</button>
+                <button type="button" class="btn confirm-delete-btn" id="confirmDeleteBtn">Hapus</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userTableContainer = document.getElementById('userTableContainer');
+            const messageContainer = document.getElementById('messageContainer');
+            const addUserBtn = document.getElementById('addUserBtn');
+            const addUserModal = document.getElementById('addUserModal');
+            const addUserForm = document.getElementById('addUserForm');
+            const addUserMessage = document.getElementById('addUserMessage');
+            const deleteUserModal = document.getElementById('deleteUserModal');
+            const deleteUserName = document.getElementById('deleteUserName');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            
+            let currentUserToDelete = null;
+            
+            // Load user list
+            loadUserList();
+            
+            // Function to load user list
+            function loadUserList() {
+                fetch('/api/users')
+                    .then(response => response.json())
+                    .then(data => {
+                        userTableContainer.innerHTML = '';
+                        
+                        if (data.success && data.data && data.data.length > 0) {
+                            const table = document.createElement('table');
+                            table.className = 'user-table';
+                            
+                            // Create table header
+                            const tableHeader = document.createElement('thead');
+                            tableHeader.innerHTML = `
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Nama</th>
+                                    <th>Role</th>
+                                    <th>Dibuat Pada</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            `;
+                            table.appendChild(tableHeader);
+                            
+                            // Create table body
+                            const tableBody = document.createElement('tbody');
+                            
+                            // Add each user to the table
+                            data.data.forEach(user => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${user.username}</td>
+                                    <td>${user.name || '-'}</td>
+                                    <td><span class="badge badge-${user.role}">${user.role}</span></td>
+                                    <td>${user.created_at || '-'}</td>
+                                    <td class="user-action-buttons">
+                                        <button class="btn btn-danger delete-user-btn" data-username="${user.username}" data-name="${user.name || user.username}">
+                                            <i class="fas fa-trash-alt"></i> Hapus
+                                        </button>
+                                    </td>
+                                `;
+                                tableBody.appendChild(row);
+                            });
+                            
+                            table.appendChild(tableBody);
+                            userTableContainer.appendChild(table);
+                            
+                            // Add event listeners to delete buttons
+                            document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                                btn.addEventListener('click', function() {
+                                    const username = this.getAttribute('data-username');
+                                    const name = this.getAttribute('data-name');
+                                    
+                                    currentUserToDelete = username;
+                                    deleteUserName.textContent = name;
+                                    deleteUserModal.style.display = 'flex';
+                                });
+                            });
+                        } else {
+                            userTableContainer.innerHTML = `
+                                <div class="error-message">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>${data.error || 'Tidak ada pengguna yang ditemukan'}</span>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        userTableContainer.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Terjadi kesalahan: ${error.message}</span>
+                            </div>
+                        `;
+                    });
+            }
+            
+            // Show add user modal
+            addUserBtn.addEventListener('click', function() {
+                addUserModal.style.display = 'flex';
+                addUserForm.reset();
+                addUserMessage.style.display = 'none';
+            });
+            
+            // Close modals when clicking close button or outside
+            document.querySelectorAll('.close-modal, #cancelAddBtn, #cancelDeleteBtn').forEach(element => {
+                element.addEventListener('click', function() {
+                    addUserModal.style.display = 'none';
+                    deleteUserModal.style.display = 'none';
+                });
+            });
+            
+            // Handle form submission
+            addUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    username: document.getElementById('username').value,
+                    name: document.getElementById('fullName').value,
+                    password: document.getElementById('password').value,
+                    role: document.getElementById('role').value
+                };
+                
+                fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage(addUserMessage, 'success', result.message);
+                        
+                        // Close modal and reload user list after 1 second
+                        setTimeout(() => {
+                            addUserModal.style.display = 'none';
+                            loadUserList();
+                            
+                            // Show global success message
+                            showMessage(messageContainer, 'success', 'Pengguna baru berhasil ditambahkan');
+                        }, 1000);
+                    } else {
+                        showMessage(addUserMessage, 'error', result.error || 'Gagal menambahkan pengguna');
+                    }
+                })
+                .catch(error => {
+                    showMessage(addUserMessage, 'error', `Terjadi kesalahan: ${error.message}`);
+                });
+            });
+            
+            // Handle delete confirmation
+            confirmDeleteBtn.addEventListener('click', function() {
+                if (!currentUserToDelete) return;
+                
+                fetch(`/api/users/${currentUserToDelete}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    deleteUserModal.style.display = 'none';
+                    
+                    if (result.success) {
+                        // Reload user list
+                        loadUserList();
+                        
+                        // Show success message
+                        showMessage(messageContainer, 'success', result.message);
+                    } else {
+                        showMessage(messageContainer, 'error', result.error || 'Gagal menghapus pengguna');
+                    }
+                })
+                .catch(error => {
+                    deleteUserModal.style.display = 'none';
+                    showMessage(messageContainer, 'error', `Terjadi kesalahan: ${error.message}`);
+                });
+            });
+            
+            // Helper function to show messages
+            function showMessage(container, type, text) {
+                container.className = type === 'success' ? 'message success-message' : 'message error-message';
+                container.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${text}</span>
+                    <button class="close-message"><i class="fas fa-times"></i></button>
+                `;
+                container.style.display = 'flex';
+                
+                // Add event listener to close button
+                const closeBtn = container.querySelector('.close-message');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        container.style.display = 'none';
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (container.style.display !== 'none') {
+                        container.style.display = 'none';
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html> 

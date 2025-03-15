@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All In One Setting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Tambahkan Shepherd.js untuk onboarding -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@11.1.1/dist/css/shepherd.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/onboarding.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/shepherd.js@11.1.1/dist/js/shepherd.min.js"></script>
+    <!-- Tambahkan Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="theme-toggle" data-tooltip="Ubah Tema">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <nav class="navbar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="navbar-brand">
+                <i class="fas fa-cogs"></i>
+                <span>All In One Setting</span>
+            </div>
+            
+            <button class="navbar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="navbar-nav">
+                {% if session.role == 'admin' %}
+                <li class="nav-item">
+                    <a href="/database" class="nav-link" data-tooltip="Manajemen Database">
+                        <i class="fas fa-database"></i>
+                        <span>Database</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/process_history" class="nav-link" data-tooltip="Riwayat Pemrosesan">
+                        <i class="fas fa-history"></i>
+                        <span>Riwayat</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/users" class="nav-link" data-tooltip="Manajemen Pengguna">
+                    <i class="fas fa-users-cog"></i>
+                        <span>Pengguna</span>
+                </a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a href="/profile" class="nav-link" data-tooltip="Profil Pengguna">
+                    <i class="fas fa-user-circle"></i>
+                        <span>Profil</span>
+                </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/logout" class="nav-link" data-tooltip="Keluar">
+                    <i class="fas fa-sign-out-alt"></i>
+                        <span>Keluar</span>
+                </a>
+                </li>
+            </ul>
+            </div>
+    </nav>
+
+    <div class="container">
+        <main class="mt-4">
+            <div class="card animate-on-scroll">
+                <div class="card-header">
+                    <h2 class="m-0"><i class="fas fa-file-upload text-primary mr-2"></i> Unggah File</h2>
+                </div>
+                <div class="card-body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                            <label class="form-label">Pilih File Excel:</label>
+                            <div class="file-upload">
+                                <input type="file" id="fileInput" name="file" accept=".xlsx,.xls" required class="file-input">
+                                <label for="fileInput" class="btn btn-outline w-100">
+                                    <i class="fas fa-file-excel mr-2"></i>
+                                <span id="fileName">Pilih File</span>
+                            </label>
+                        </div>
+                    </div>
+
+                        <div class="d-flex flex-column flex-md-row">
+                            <div class="form-group mr-md-3 w-100">
+                                <label class="form-label">Jenis Proses:</label>
+                                <div class="d-flex">
+                                    <select id="processType" name="process_type" class="form-control form-select mr-2">
+                                        <option value="Bundle">Bundle</option>
+                                        <option value="Supplementary">Supplementary</option>
+                                        <option value="Gift">Gift</option>
+                                    </select>
+                                    <button type="button" id="downloadTemplateBtn" class="btn btn-outline-info" data-tooltip="Unduh template kosong untuk digunakan sebagai format file input">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted mt-1">
+                                    <i class="fas fa-info-circle"></i> Unduh template untuk memudahkan pembuatan file input dengan format yang benar
+                                </small>
+                            </div>
+
+                            <div class="form-group w-100">
+                                <label class="form-label">Format Output:</label>
+                                <select id="outputFormat" name="output_format" class="form-control form-select">
+                                <option value="xlsx">Excel (.xlsx)</option>
+                                <option value="csv">CSV (.csv)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                        <div class="d-flex flex-column flex-md-row">
+                            <div class="form-group mr-md-3 w-100">
+                                <label class="form-label">Dibuat Oleh:</label>
+                                <input type="text" id="createdBy" name="created_by" placeholder="Masukkan nama Anda" class="form-control">
+                        </div>
+
+                            <div class="form-group d-flex align-items-center w-100">
+                                <div class="alert alert-info mb-0 w-100">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <span>Sistem akan melakukan validasi otomatis antara file input dan output dengan visualisasi grafik</span>
+                                </div>
+                        </div>
+                    </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" id="resetButton" class="btn btn-outline-danger mr-2">
+                                <i class="fas fa-undo-alt mr-2"></i> Reset
+                            </button>
+                        <button type="submit" id="processButton" class="btn btn-primary">
+                                <i class="fas fa-cog mr-2"></i> Proses File
+                        </button>
+                    </div>
+                </form>
+                </div>
+            </div>
+
+            <div class="card animate-on-scroll">
+                <div class="card-header">
+                    <h2 class="m-0"><i class="fas fa-tasks text-primary mr-2"></i> Hasil Pemrosesan</h2>
+                </div>
+                <div class="card-body">
+                    <div class="progress-container mb-4">
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+                    
+                    <div class="log-container mb-4">
+                    <div id="logOutput" class="log-content"></div>
+                </div>
+                    
+                    <div id="downloadContainer" style="display: none;" class="text-center">
+                    <button id="downloadButton" class="btn btn-success">
+                            <i class="fas fa-download mr-2"></i> Unduh Hasil
+                    </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Container untuk visualisasi grafik -->
+            <div id="chartContainer" style="display: none;" class="mt-4">
+                <div class="card animate-on-scroll">
+                    <div class="card-header">
+                        <h2 class="m-0"><i class="fas fa-chart-pie text-primary mr-2"></i> Visualisasi File Output</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Ringkasan -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h4 class="mb-2"><i class="fas fa-info-circle mr-2"></i> Ringkasan File Output</h4>
+                                    <div class="summary-info" id="summaryInfo">
+                                        <p><strong>Jenis Proses:</strong> <span id="processTypeSummary">-</span></p>
+                                        <p><strong>Jumlah Sheet:</strong> <span id="sheetCount">0</span></p>
+                                        <p><strong>Total Record:</strong> <span id="recordCount">0</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grafik Distribusi Record per Sheet -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <canvas id="recordDistributionChart"></canvas>
+                                </div>
+                                <h3 class="text-center mt-3">Distribusi MainSKU per ShopID</h3>
+                            </div>
+                            
+                            <!-- Grafik Jumlah Kolom per Sheet -->
+                            <div class="col-md-6 mb-4">
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <canvas id="columnCountChart"></canvas>
+                                </div>
+                                <h3 class="text-center mt-3">Timeline Proses</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Tabel Sampel Data -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h3 class="mb-3"><i class="fas fa-table text-primary mr-2"></i> Sampel Data</h3>
+                                <div class="sheet-selector mb-3">
+                                    <label for="sheetSelector" class="form-label">Pilih Sheet:</label>
+                                    <select id="sheetSelector" class="form-control form-select">
+                                        <option value="">-- Pilih Sheet --</option>
+                                    </select>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="dataSampleTable" class="table">
+                                        <thead>
+                                            <tr id="tableHeader"></tr>
+                                        </thead>
+                                        <tbody id="tableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center mt-5 mb-3">
+            <p>Dibuat Oleh Handiyan Juansah &copy; 2025</p>
+        </footer>
+    </div>
+
+    <!-- Modal untuk informasi aplikasi -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h2>Informasi Aplikasi</h2>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Nama Aplikasi:</strong> All In One Setting</p>
+                <p><strong>Versi:</strong> 1.0</p>
+                <p><strong>Pembuat:</strong> Handiyan Juansah</p>
+                <p><strong>Pengguna:</strong> {{ session.username }} ({{ session.role }})</p>
+                <p><strong>Deskripsi:</strong> Aplikasi web untuk memproses file Excel dengan fungsi Bundle, Supplementary, dan Gift.</p>
+                <p><strong>Cara Penggunaan:</strong></p>
+                <ol>
+                    <li>Unggah file Excel dengan format yang sesuai</li>
+                    <li>Pilih jenis proses (Bundle, Supplementary, atau Gift)</li>
+                    <li>Tentukan format output</li>
+                    <li>Isi kolom "Dibuat Oleh" (opsional)</li>
+                    <li>Klik tombol "Proses File"</li>
+                    <li>Tunggu hingga proses selesai dan unduh hasil</li>
+                    <li>Periksa sheet "Validasi" pada file hasil untuk melihat perbandingan data input dan output</li>
+                    <li>Lihat visualisasi file output yang menampilkan distribusi record, jumlah kolom, dan sampel data</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/modern.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- Tambahkan script onboarding -->
+    <script src="{{ url_for('static', filename='js/onboarding.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elemen DOM
+            const uploadForm = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const fileName = document.getElementById('fileName');
+            const processButton = document.getElementById('processButton');
+            const resetButton = document.getElementById('resetButton');
+            const progressBar = document.getElementById('progressBar');
+            const logOutput = document.getElementById('logOutput');
+            const downloadContainer = document.getElementById('downloadContainer');
+            const downloadButton = document.getElementById('downloadButton');
+            const infoButton = document.querySelector('.nav-link[data-tooltip="Informasi"]');
+            const infoModal = document.getElementById('infoModal');
+            const closeModal = document.querySelector('.close');
+            const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+            const processTypeSelect = document.getElementById('processType');
+
+            // Variabel untuk menyimpan nama file hasil
+            let outputFileName = '';
+            
+            // Variabel untuk menyimpan chart
+            let recordDistributionChart = null;
+            let columnCountChart = null;
+            
+            // Variabel untuk menyimpan data output
+            let outputData = null;
+
+            // Event listener untuk tombol download template
+            downloadTemplateBtn.addEventListener('click', function() {
+                const processType = processTypeSelect.value;
+                
+                // Tampilkan loading state pada tombol
+                const originalButtonContent = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+                
+                // Tampilkan notifikasi bahwa template sedang diunduh
+                showNotification('Mengunduh template...', 'info', 'Informasi');
+                
+                // Buat URL untuk download template
+                const templateUrl = `/download_template/${processType}`;
+                
+                // Buat link sementara untuk mengunduh file
+                const tempLink = document.createElement('a');
+                tempLink.href = templateUrl;
+                tempLink.target = '_blank';
+                
+                // Tangani baik sukses maupun error
+                setTimeout(() => {
+                    // Kembalikan tombol ke state semula
+                    this.innerHTML = originalButtonContent;
+                    this.disabled = false;
+                    
+                    // Tambahkan notifikasi sukses setelah jeda singkat
+                    setTimeout(() => {
+                        showNotification(`Template ${processType} berhasil diunduh`, 'success', 'Berhasil');
+                    }, 1000);
+                }, 1500);
+                
+                // Klik link untuk mulai unduhan
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+            });
+
+            // Tambahkan kode untuk mengupdate tampilan Jenis Proses
+            const processTypeSpan = document.querySelector('#summaryInfo #processTypeSummary');
+            
+            // Perbarui span dengan nilai yang dipilih saat halaman dimuat
+            if (processTypeSelect && processTypeSpan) {
+                processTypeSpan.textContent = processTypeSelect.value;
+                
+                // Perbarui span saat pilihan berubah
+                processTypeSelect.addEventListener('change', function() {
+                    console.log('Jenis proses berubah ke:', this.value);
+                    processTypeSpan.textContent = this.value;
+                });
+                
+                // Pastikan dropdown jenis proses selalu dapat digunakan
+                processTypeSelect.disabled = false;
+            }
+
+            // Fungsi untuk membuat grafik file output
+            function createOutputCharts(data) {
+                // Simpan data output
+                outputData = data;
+                
+                // Tampilkan container grafik
+                document.getElementById('chartContainer').style.display = 'block';
+                
+                // Tampilkan ringkasan
+                document.getElementById('processTypeSummary').textContent = data.process_type;
+                document.getElementById('sheetCount').textContent = data.summary.sheet_count;
+                document.getElementById('recordCount').textContent = data.summary.total_records;
+                
+                // Debug data
+                console.log('Data sheets:', data.sheets);
+                console.log('Data samples:', data.data_samples);
+                
+                // 1. Buat pie chart untuk distribusi record per sheet
+                const recordCtx = document.getElementById('recordDistributionChart').getContext('2d');
+                if (recordDistributionChart) recordDistributionChart.destroy();
+                
+                // Data untuk MainSKU dan Marketplace
+                let marketplaceData = {};
+                
+                // Cek apakah ini proses Bundle (yang memiliki MainSKU)
+                if (data.process_type === 'Bundle') {
+                    // Ambil sampel data dari sheet pertama
+                    const firstSheetName = data.sheets[0].name;
+                    const samples = data.data_samples[firstSheetName] || [];
+                    
+                    // Group by ShopID (ShopID pada output sama dengan Marketplace pada input)
+                    samples.forEach(sample => {
+                        if (sample.ShopID) {
+                            const shopId = sample.ShopID;
+                            if (!marketplaceData[shopId]) {
+                                marketplaceData[shopId] = 0;
+                            }
+                            marketplaceData[shopId]++;
+                        }
+                    });
+                    
+                    // Jika tidak ada data, coba cari di seluruh sheet
+                    if (Object.keys(marketplaceData).length === 0) {
+                        // Coba di semua sheet
+                        data.sheets.forEach(sheet => {
+                            const sheetSamples = data.data_samples[sheet.name] || [];
+                            sheetSamples.forEach(sample => {
+                                if (sample.ShopID) {
+                                    const shopId = sample.ShopID;
+                                    if (!marketplaceData[shopId]) {
+                                        marketplaceData[shopId] = 0;
+                                    }
+                                    marketplaceData[shopId]++;
+                                }
+                            });
+                        });
+                    }
+                }
+                
+                // Jika masih tidak ada data, coba kolom lain yang mungkin
+                if (Object.keys(marketplaceData).length === 0) {
+                    // Coba temukan header yang tersedia dalam sampel
+                    const availableSheets = data.sheets;
+                    if (availableSheets.length > 0) {
+                        const firstSheet = availableSheets[0];
+                        const headerSamples = data.data_samples[firstSheet.name] || [];
+                        
+                        console.log('Available headers:', headerSamples.length > 0 ? Object.keys(headerSamples[0]) : 'No samples');
+                        
+                        if (headerSamples.length > 0) {
+                            // Cek header yang tersedia
+                            const availableHeaders = Object.keys(headerSamples[0]);
+                            
+                            // Cari kolom yang mungkin berisi data marketplace/shopid
+                            const possibleMarketplaceHeaders = ['ShopID', 'Shop_ID', 'Shop', 'Marketplace', 'Market', 'Channel', 'Platform', 'Store'];
+                            const marketplaceHeader = availableHeaders.find(header => 
+                                possibleMarketplaceHeaders.some(possible => 
+                                    header.toLowerCase().includes(possible.toLowerCase())
+                                )
+                            );
+                            
+                            if (marketplaceHeader) {
+                                console.log('Using alternative header for grouping:', marketplaceHeader);
+                                
+                                // Kumpulkan data
+                                availableSheets.forEach(sheet => {
+                                    const samples = data.data_samples[sheet.name] || [];
+                                    samples.forEach(sample => {
+                                        if (sample[marketplaceHeader]) {
+                                            const value = sample[marketplaceHeader];
+                                            if (!marketplaceData[value]) {
+                                                marketplaceData[value] = 0;
+                                            }
+                                            marketplaceData[value]++;
+                                        }
+                                    });
+                                });
+                            } else if (availableHeaders.length > 1) {
+                                // Fallback ke header kedua jika tidak ada yang cocok
+                                const groupByHeader = availableHeaders[1];
+                                
+                                console.log('Using fallback header for grouping:', groupByHeader);
+                                
+                                // Kumpulkan data
+                                availableSheets.forEach(sheet => {
+                                    const samples = data.data_samples[sheet.name] || [];
+                                    samples.forEach(sample => {
+                                        if (sample[groupByHeader]) {
+                                            const value = sample[groupByHeader];
+                                            if (!marketplaceData[value]) {
+                                                marketplaceData[value] = 0;
+                                            }
+                                            marketplaceData[value]++;
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                // Dapatkan ShopID dan jumlah
+                const shopIds = Object.keys(marketplaceData);
+                const counts = Object.values(marketplaceData);
+                
+                console.log('Chart data shop IDs:', shopIds);
+                console.log('Chart data values:', counts);
+                
+                // Ambil mapping marketplace dari database
+                fetchMarketplaceMappings().then(mappings => {
+                    // Buat object untuk mapping shopId ke nama marketplace
+                    const shopIdToMarketplace = {};
+                    mappings.forEach(mapping => {
+                        shopIdToMarketplace[mapping.shop_id] = mapping.marketplace;
+                    });
+                    
+                    console.log('ShopID to Marketplace mapping:', shopIdToMarketplace);
+                    
+                    // Buat labels dengan mencoba menggunakan nama marketplace jika tersedia
+                    const marketplaceLabels = shopIds.map(shopId => {
+                        return shopIdToMarketplace[shopId] || shopId;
+                    });
+                    
+                    console.log('Final marketplace labels:', marketplaceLabels);
+                    
+                    // Buat array warna untuk BOMSKU
+                    const marketplaceColors = generateColors(marketplaceLabels.length);
+                    
+                    // Buat pie chart
+                    recordDistributionChart = new Chart(recordCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: marketplaceLabels.length > 0 ? marketplaceLabels : ['No Data'],
+                            datasets: [{
+                                data: counts.length > 0 ? counts : [1],
+                                backgroundColor: marketplaceLabels.length > 0 ? marketplaceColors : ['#cccccc'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            if (marketplaceLabels.length === 0) {
+                                                return 'No data available';
+                                            }
+                                            const label = context.label || '';
+                                            const value = context.raw || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = Math.round((value / total) * 100);
+                                            return `${label}: ${value} MainSKU (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // 2. Buat bar chart untuk Marketplace
+                    const columnCtx = document.getElementById('columnCountChart').getContext('2d');
+                    if (columnCountChart) columnCountChart.destroy();
+                    
+                    // Gunakan fungsi helper untuk membuat timeline chart
+                    columnCountChart = createTimelineChart(columnCtx, counts);
+                }).catch(error => {
+                    console.error('Error fetching marketplace mappings:', error);
+                    
+                    // 2. Buat bar chart untuk Marketplace
+                    const columnCtx = document.getElementById('columnCountChart').getContext('2d');
+                    if (columnCountChart) columnCountChart.destroy();
+                    
+                    // Gunakan fungsi helper untuk membuat timeline chart
+                    columnCountChart = createTimelineChart(columnCtx, counts);
+                });
+                
+                // Fungsi helper untuk membuat timeline chart
+                function createTimelineChart(ctx, countData) {
+                    // Coba dapatkan data MainSKU atau GiftSKU dari sampel data jika tersedia
+                    const timelineData = [];
+                    let skuItems = [];
+                    
+                    // Coba dapatkan mainSKU atau giftSKU dari data sampel
+                    if (outputData && outputData.sheets && outputData.sheets.length > 0) {
+                        const firstSheetName = outputData.sheets[0].name;
+                        const samples = outputData.data_samples[firstSheetName] || [];
+                        
+                        // Cari kolom yang berkaitan dengan MainSKU atau GiftSKU
+                        if (samples.length > 0) {
+                            const headers = Object.keys(samples[0]);
+                            const mainSkuHeader = headers.find(h => 
+                                h.toLowerCase().includes('main') && h.toLowerCase().includes('sku')
+                            );
+                            const giftSkuHeader = headers.find(h => 
+                                h.toLowerCase().includes('gift') && h.toLowerCase().includes('sku')
+                            );
+                            
+                            // Coba dapatkan MainSKU terlebih dahulu
+                            if (mainSkuHeader) {
+                                console.log('Menggunakan MainSKU untuk timeline');
+                                // Ambil MainSKU unik dari sampel
+                                const uniqueMainSkus = [...new Set(samples.filter(s => s[mainSkuHeader]).map(s => s[mainSkuHeader]))];
+                                // Batasi hingga maksimal 5 untuk keterbacaan
+                                skuItems = uniqueMainSkus.slice(0, 5);
+                            } 
+                            // Jika tidak ada MainSKU, coba GiftSKU
+                            else if (giftSkuHeader) {
+                                console.log('Menggunakan GiftSKU untuk timeline');
+                                // Ambil GiftSKU unik dari sampel
+                                const uniqueGiftSkus = [...new Set(samples.filter(s => s[giftSkuHeader]).map(s => s[giftSkuHeader]))];
+                                // Batasi hingga maksimal 5 untuk keterbacaan
+                                skuItems = uniqueGiftSkus.slice(0, 5);
+                            }
+                        }
+                    }
+                    
+                    // Jika tidak menemukan MainSKU atau GiftSKU, gunakan jenis proses default
+                    if (skuItems.length === 0) {
+                        console.log('Fallback ke jenis proses untuk timeline');
+                        skuItems = ['Bundle', 'Supplementary', 'Gift'];
+                    }
+                    
+                    // Buat data timeline untuk setiap SKU
+                    const currentDate = new Date();
+                    
+                    skuItems.forEach((skuItem, index) => {
+                        // Buat tanggal mulai 5 hari yang lalu + index*5 hari
+                        const startDate = new Date(currentDate);
+                        startDate.setDate(startDate.getDate() - 5 - (index * 5));
+                        
+                        // Buat tanggal selesai 2 hari yang lalu + index*5 hari
+                        const endDate = new Date(currentDate);
+                        endDate.setDate(startDate.getDate() + 2 + (index * 5));
+                        
+                        // Hitung jumlah hari proses
+                        const daysDiff = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+                        
+                        // Tambahkan ke data timeline
+                        timelineData.push({
+                            skuItem: skuItem, // MainSKU atau GiftSKU
+                            startDate: startDate,
+                            endDate: endDate,
+                            daysDiff: daysDiff,
+                            // Simpan juga jumlah untuk referensi
+                            count: countData[index] || Math.floor(Math.random() * 100) + 20
+                        });
+                    });
+                    
+                    // Sort data berdasarkan tanggal mulai
+                    timelineData.sort((a, b) => a.startDate - b.startDate);
+                    
+                    // Siapkan data untuk chart
+                    const timelineLabels = timelineData.map(item => item.skuItem);
+                    const timelineColors = generateColors(timelineData.length);
+                    
+                    // Format tanggal untuk label
+                    function formatDate(date) {
+                        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
+                    }
+                    
+                    // Siapkan dataset untuk timeline chart
+                    const timelineDatasets = [{
+                        label: 'Durasi Proses (Hari)',
+                        data: timelineData.map(item => item.daysDiff), // Gunakan jumlah hari untuk ukuran bar
+                        backgroundColor: timelineColors,
+                        borderWidth: 1
+                    }];
+                    
+                    // Gunakan data timeline untuk chart
+                    return new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: timelineLabels,
+                            datasets: timelineDatasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',  // Membuat bar chart horizontal untuk tampilan timeline
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Durasi (Hari)'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'SKU'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            return context[0].label;
+                                        },
+                                        label: function(context) {
+                                            const index = context.dataIndex;
+                                            const item = timelineData[index];
+                                            return [
+                                                `Tanggal Mulai: ${formatDate(item.startDate)}`,
+                                                `Tanggal Selesai: ${formatDate(item.endDate)}`,
+                                                `Durasi: ${item.daysDiff} hari`,
+                                                `Jumlah: ${item.count}`
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // 3. Isi selector sheet untuk sampel data
+                const sheetSelector = document.getElementById('sheetSelector');
+                sheetSelector.innerHTML = '<option value="">-- Pilih Sheet --</option>';
+                
+                outputData.sheets.forEach(sheet => {
+                    const option = document.createElement('option');
+                    option.value = sheet.name;
+                    option.textContent = sheet.name;
+                    sheetSelector.appendChild(option);
+                });
+                
+                // Event listener untuk selector sheet
+                sheetSelector.addEventListener('change', function() {
+                    const selectedSheet = this.value;
+                    if (selectedSheet && outputData.data_samples[selectedSheet]) {
+                        displayDataSample(selectedSheet, outputData.data_samples[selectedSheet]);
+                    } else {
+                        clearDataSample();
+                    }
+                });
+            }
+            
+            // Fungsi untuk menampilkan sampel data
+            function displayDataSample(sheetName, dataSample) {
+                const tableHeader = document.getElementById('tableHeader');
+                const tableBody = document.getElementById('tableBody');
+                
+                // Bersihkan tabel
+                tableHeader.innerHTML = '';
+                tableBody.innerHTML = '';
+                
+                if (dataSample.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="100%" class="text-center">Tidak ada data</td></tr>';
+                    return;
+                }
+                
+                // Ambil header dari data dan gunakan header asli dari pengaturan sheet jika tersedia
+                let headers = [];
+                
+                // Cari informasi sheet dan gunakan header asli jika tersedia
+                if (outputData && outputData.sheets) {
+                    const sheetInfo = outputData.sheets.find(sheet => sheet.name === sheetName);
+                    if (sheetInfo && sheetInfo.headers) {
+                        // Gunakan header asli dari server untuk menjaga urutan
+                        headers = sheetInfo.headers;
+                    } else {
+                        // Fallback ke cara lama jika header tidak tersedia
+                        headers = Object.keys(dataSample[0]);
+                    }
+                } else {
+                    // Fallback ke cara lama jika outputData.sheets tidak tersedia
+                    headers = Object.keys(dataSample[0]);
+                }
+                
+                // Buat header tabel
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    tableHeader.appendChild(th);
+                });
+                
+                // Buat baris data
+                dataSample.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    headers.forEach(header => {
+                        const td = document.createElement('td');
+                        td.textContent = row[header] !== null && row[header] !== undefined ? row[header] : '';
+                        tr.appendChild(td);
+                    });
+                    
+                    tableBody.appendChild(tr);
+                });
+            }
+            
+            // Fungsi untuk membersihkan tabel sampel data
+            function clearDataSample() {
+                document.getElementById('tableHeader').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="100%" class="text-center">Pilih sheet untuk melihat sampel data</td></tr>';
+            }
+            
+            // Fungsi untuk menghasilkan warna
+            function generateColors(count) {
+                const baseColors = [
+                    '#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f',
+                    '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'
+                ];
+                
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    colors.push(baseColors[i % baseColors.length]);
+                }
+                
+                return colors;
+            }
+            
+            // Fungsi untuk memuat data output
+            function loadOutputData(filename) {
+                fetch(`/api/output_data/${filename}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Gagal memuat data output');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        createOutputCharts(data);
+                        addLog('Visualisasi file output berhasil dibuat');
+                    })
+                    .catch(error => {
+                        showNotification(`Gagal memuat data output: ${error.message}`, 'error', 'Kesalahan');
+                        console.error('Error loading output data:', error);
+                    });
+            }
+
+            // Menangani perubahan file yang dipilih
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileName.textContent = this.files[0].name;
+                } else {
+                    fileName.textContent = 'Pilih File';
+                }
+            });
+
+            // Menangani reset formulir
+            resetButton.addEventListener('click', function() {
+                // Tambahkan konfirmasi reset
+                if (confirm('Apakah Anda yakin ingin mengatur ulang form? Semua data dan file yang telah diproses akan dihapus.')) {
+                    // Tampilkan loading state pada tombol
+                    const originalButtonText = resetButton.innerHTML;
+                    resetButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mereset...';
+                    resetButton.disabled = true;
+                    
+                    // Ambil referensi ke elemen select jenis proses
+                    const processTypeSelect = document.getElementById('processType');
+                    
+                    // Catat nilai sebelum reset
+                    const selectedProcessType = processTypeSelect ? processTypeSelect.value : 'Bundle';
+                    console.log('Jenis proses sebelum reset:', selectedProcessType);
+                    
+                    // Pastikan dropdown jenis proses dapat diakses
+                    if (processTypeSelect) {
+                        processTypeSelect.disabled = false;
+                    }
+                    
+                    // Reset form dan UI
+                    uploadForm.reset();
+                    
+                    // Setelah reset form, pastikan dropdown jenis proses dipilih dengan benar
+                    if (processTypeSelect) {
+                        // Reset ke opsi default (Bundle)
+                        processTypeSelect.value = 'Bundle';
+                        // Pastikan tidak disabled
+                        processTypeSelect.disabled = false;
+                    }
+                    
+                    fileName.textContent = 'Pilih File';
+                    logOutput.innerHTML = '';
+                    progressBar.style.width = '0%';
+                    progressBar.textContent = '0%';
+                    downloadContainer.style.display = 'none';
+                    
+                    // Reset grafik
+                    document.getElementById('chartContainer').style.display = 'none';
+                    if (recordDistributionChart) recordDistributionChart.destroy();
+                    if (columnCountChart) columnCountChart.destroy();
+                    
+                    // Reset ringkasan
+                    document.getElementById('processTypeSummary').textContent = '-';
+                    document.getElementById('sheetCount').textContent = '0';
+                    document.getElementById('recordCount').textContent = '0';
+                    
+                    // Reset tabel
+                    clearDataSample();
+                    document.getElementById('sheetSelector').innerHTML = '<option value="">-- Pilih Sheet --</option>';
+                    
+                    // Hapus value dari file input untuk memastikan file benar-benar dibersihkan
+                    const fileInput = document.getElementById('fileInput');
+                    fileInput.value = '';
+                    
+                    // Bersihkan variabel global yang mungkin menyimpan data hasil proses
+                    if (window.outputData) {
+                        window.outputData = null;
+                    }
+                    
+                    // Log status setelah reset
+                    console.log('Jenis proses setelah reset:', processTypeSelect ? processTypeSelect.value : 'Tidak ditemukan');
+                    console.log('ProcessType enabled:', processTypeSelect ? !processTypeSelect.disabled : 'Tidak ditemukan');
+                    
+                    // Memanggil API untuk membersihkan file sementara di server
+                    fetch('/api/clear_temp_files', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            addLog(`${data.message}`);
+                        } else if (data.error) {
+                            console.error('Error:', data.error);
+                        }
+                        
+                        // Kembalikan tombol ke state normal
+                        resetButton.innerHTML = originalButtonText;
+                        resetButton.disabled = false;
+                        
+                        // Log status akhir
+                        console.log('Status akhir jenis proses:', processTypeSelect ? processTypeSelect.value : 'Tidak ditemukan');
+                        console.log('ProcessType enabled:', processTypeSelect ? !processTypeSelect.disabled : 'Tidak ditemukan');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        
+                        // Kembalikan tombol ke state normal
+                        resetButton.innerHTML = originalButtonText;
+                        resetButton.disabled = false;
+                    });
+                    
+                    // Tampilkan pesan reset berhasil
+                    showSuccess('Form berhasil direset. Anda dapat mengunggah file baru.');
+                }
+            });
+
+            // Menangani pengiriman formulir
+            uploadForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                // Validasi file
+                if (fileInput.files.length === 0) {
+                    showNotification('Silakan pilih file terlebih dahulu', 'error', 'Kesalahan');
+                    return;
+                }
+
+                // Persiapan pengiriman data
+                const formData = new FormData(this);
+                
+                // Reset UI
+                logOutput.innerHTML = '';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                downloadContainer.style.display = 'none';
+                
+                // Tampilkan progres awal
+                updateProgress(10);
+                addLog('Mengunggah file...');
+                
+                // Nonaktifkan tombol selama pemrosesan
+                processButton.disabled = true;
+                
+                // Kirim permintaan AJAX
+                fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    updateProgress(50);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        showNotification(data.error, 'error', 'Kesalahan');
+                        updateProgress(0);
+                    } else {
+                        updateProgress(100);
+                        addLog('File berhasil diproses!');
+                        
+                        // Tampilkan log dari server
+                        if (data.log && Array.isArray(data.log)) {
+                            data.log.forEach(logMessage => {
+                                addLog(logMessage);
+                            });
+                        }
+                        
+                        // Tampilkan tombol unduh
+                        if (data.output_file) {
+                            outputFileName = data.output_file;
+                            downloadContainer.style.display = 'block';
+                            addLog(`File hasil: ${outputFileName}`);
+                            addLog('Sheet "Validasi" berisi perbandingan data input dan output');
+                            addLog('Membuat visualisasi file output...');
+                            
+                            // Muat data output untuk membuat grafik
+                            loadOutputData(outputFileName);
+                        }
+                        
+                        showNotification(data.message || 'File berhasil diproses', 'success', 'Berhasil');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Terjadi kesalahan: ' + error.message, 'error', 'Kesalahan');
+                    updateProgress(0);
+                })
+                .finally(() => {
+                    // Aktifkan kembali tombol
+                    processButton.disabled = false;
+                });
+            });
+
+            // Tombol unduh file hasil
+            downloadButton.addEventListener('click', function() {
+                if (outputFileName) {
+                    window.location.href = `/download/${outputFileName}`;
+                }
+            });
+
+            // Fungsi untuk menampilkan log
+            function addLog(message) {
+                const logItem = document.createElement('div');
+                logItem.classList.add('log-item');
+                logItem.innerHTML = `<span class="log-time">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+                logOutput.appendChild(logItem);
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+
+            // Fungsi untuk memperbarui progress bar
+            function updateProgress(percent) {
+                progressBar.style.width = percent + '%';
+                progressBar.textContent = percent + '%';
+            }
+
+            // Tambahkan style untuk progress bar dan log
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Grid layout */
+                .row {
+                    display: flex;
+                    flex-wrap: wrap;
+                    margin-right: -15px;
+                    margin-left: -15px;
+                }
+                
+                .col-12 {
+                    flex: 0 0 100%;
+                    max-width: 100%;
+                    padding-right: 15px;
+                    padding-left: 15px;
+                }
+                
+                .col-md-6 {
+                    flex: 0 0 100%;
+                    max-width: 100%;
+                    padding-right: 15px;
+                    padding-left: 15px;
+                }
+                
+                @media (min-width: 768px) {
+                    .col-md-6 {
+                        flex: 0 0 50%;
+                        max-width: 50%;
+                    }
+                }
+                
+                .text-center {
+                    text-align: center;
+                }
+                
+                .mt-3 {
+                    margin-top: 15px;
+                }
+                
+                .mt-4 {
+                    margin-top: 20px;
+                }
+                
+                .mb-2 {
+                    margin-bottom: 10px;
+                }
+                
+                .mb-4 {
+                    margin-bottom: 20px;
+                }
+                
+                /* Perbaikan untuk tampilan form */
+                .form-control {
+                    border: 1px solid var(--border-color);
+                    background-color: var(--surface);
+                }
+                
+                .form-select {
+                    border: 1px solid var(--border-color);
+                    background-color: var(--surface);
+                }
+                
+                .dark-theme .form-control,
+                .dark-theme .form-select {
+                    border-color: var(--dark-border-color);
+                    background-color: var(--dark-surface);
+                }
+                
+                /* Style untuk date picker */
+                input[type="date"] {
+                    padding: var(--spacing-md);
+                    border: 1px solid var(--border-color);
+                    border-radius: var(--border-radius-md);
+                    background-color: var(--surface);
+                    color: var(--text-primary);
+                    font-family: var(--font-family);
+                    font-size: var(--font-size-md);
+                }
+                
+                .dark-theme input[type="date"] {
+                    background-color: var(--dark-surface);
+                    color: var(--dark-text-primary);
+                    border-color: var(--dark-border-color);
+                }
+                
+                /* Style untuk dropdown */
+                select {
+                    appearance: none;
+                    padding: var(--spacing-md);
+                    border: 1px solid var(--border-color);
+                    border-radius: var(--border-radius-md);
+                    background-color: var(--surface);
+                    color: var(--text-primary);
+                    font-family: var(--font-family);
+                    font-size: var(--font-size-md);
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23757575' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 10px center;
+                    background-size: 16px;
+                    padding-right: 30px;
+                }
+                
+                .dark-theme select {
+                    background-color: var(--dark-surface);
+                    color: var(--dark-text-primary);
+                    border-color: var(--dark-border-color);
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23b0b0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                }
+                
+                /* Style untuk progress bar */
+                .progress {
+                    height: 10px;
+                    background-color: var(--secondary-variant);
+                    border-radius: var(--border-radius-md);
+                    overflow: hidden;
+                }
+                
+                .progress-bar {
+                    height: 100%;
+                    background-color: var(--primary-color);
+                    color: var(--on-primary);
+                    text-align: center;
+                    line-height: 10px;
+                    font-size: 10px;
+                    transition: width 0.3s ease;
+                }
+                
+                .dark-theme .progress {
+                    background-color: var(--dark-secondary);
+                }
+                
+                .dark-theme .progress-bar {
+                    background-color: var(--dark-primary);
+                    color: var(--dark-on-primary);
+                }
+                
+                /* Style untuk log container */
+                .log-container {
+                    background-color: var(--surface-variant);
+                    border-radius: var(--border-radius-md);
+                    padding: var(--spacing-md);
+                    max-height: 200px;
+                    overflow-y: auto;
+                    border: 1px solid var(--border-color);
+                }
+                
+                .dark-theme .log-container {
+                    background-color: var(--dark-surface-variant);
+                    border-color: var(--dark-border-color);
+                }
+                
+                .log-content {
+                    font-family: monospace;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    color: var(--text-primary);
+                }
+                
+                .dark-theme .log-content {
+                    color: var(--dark-text-primary);
+                }
+                
+                .log-item {
+                    margin-bottom: 5px;
+                    color: var(--text-secondary);
+                }
+                
+                .dark-theme .log-item {
+                    color: var(--dark-text-secondary);
+                }
+                
+                .log-time {
+                    color: var(--primary-color);
+                    margin-right: 5px;
+                }
+                
+                .dark-theme .log-time {
+                    color: var(--dark-primary);
+                }
+                
+                /* Style untuk file upload */
+                .file-upload {
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .file-input {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    opacity: 0;
+                    width: 0.1px;
+                    height: 0.1px;
+                }
+                
+                /* Style untuk modal */
+                .modal {
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 1050;
+                    overflow: auto;
+                }
+                
+                .modal-content {
+                    background-color: var(--surface);
+                    margin: 10% auto;
+                    width: 80%;
+                    max-width: 600px;
+                    border-radius: var(--border-radius-lg);
+                    box-shadow: var(--elevation-3);
+                    animation: slideInUp var(--transition-normal);
+                    border: 1px solid var(--border-color);
+                }
+                
+                .dark-theme .modal-content {
+                    background-color: var(--dark-surface);
+                    border-color: var(--dark-border-color);
+                }
+                
+                .modal-header {
+                    padding: var(--spacing-lg);
+                    border-bottom: 1px solid var(--border-color);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background-color: var(--surface-variant);
+                }
+                
+                .dark-theme .modal-header {
+                    border-bottom-color: var(--dark-border-color);
+                    background-color: var(--dark-surface-variant);
+                }
+                
+                .modal-body {
+                    padding: var(--spacing-lg);
+                }
+                
+                .close {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: var(--text-secondary);
+                    opacity: 0.7;
+                    transition: opacity var(--transition-fast);
+                }
+                
+                .close:hover {
+                    opacity: 1;
+                }
+                
+                .dark-theme .close {
+                    color: var(--dark-text-secondary);
+                }
+                
+                /* Perbaikan untuk form checkbox pada tema gelap */
+                .form-checkbox label {
+                    color: var(--text-secondary);
+                }
+                
+                .dark-theme .form-checkbox label {
+                    color: var(--dark-text-secondary);
+                }
+                
+                /* Perbaikan untuk file upload button pada tema gelap */
+                .dark-theme .file-upload .btn-outline {
+                    border-color: var(--dark-primary);
+                    color: var(--dark-primary);
+                }
+                
+                .dark-theme .file-upload .btn-outline:hover {
+                    background-color: var(--dark-primary);
+                    color: var(--dark-on-primary);
+                }
+                
+                /* Perbaikan untuk masalah hover */
+                .btn:not(:hover) {
+                    background-color: initial;
+                    box-shadow: var(--elevation-1);
+                    transform: none;
+                }
+                
+                .btn-primary:not(:hover) {
+                    background-color: var(--primary-color);
+                }
+                
+                .dark-theme .btn-primary:not(:hover) {
+                    background-color: var(--dark-primary);
+                }
+                
+                .btn-success:not(:hover) {
+                    background-color: var(--success);
+                    opacity: 1;
+                }
+                
+                .btn-outline:not(:hover) {
+                    background-color: transparent;
+                    color: var(--primary-color);
+                }
+                
+                .dark-theme .btn-outline:not(:hover) {
+                    background-color: transparent;
+                    color: var(--dark-primary);
+                }
+                
+                .nav-link:not(:hover) {
+                    background-color: transparent;
+                    color: var(--text-secondary);
+                }
+                
+                .dark-theme .nav-link:not(:hover) {
+                    background-color: transparent;
+                    color: var(--dark-text-secondary);
+                }
+                
+                .theme-toggle:not(:hover) {
+                    transform: rotate(0deg);
+                    box-shadow: var(--elevation-3);
+                }
+                
+                /* Style untuk theme toggle */
+                .theme-toggle {
+                    background-color: var(--surface);
+                    color: var(--text-primary);
+                    border: 1px solid var(--border-color);
+                }
+                
+                .dark-theme .theme-toggle {
+                    background-color: var(--dark-surface);
+                    color: var(--dark-text-primary);
+                    border-color: var(--dark-border-color);
+                }
+                
+                /* Style untuk alert */
+                .alert {
+                    padding: var(--spacing-lg);
+                    border-radius: var(--border-radius-md);
+                    margin-bottom: var(--spacing-md);
+                    border: 1px solid transparent;
+                }
+                
+                .alert-success {
+                    background-color: rgba(198, 239, 206, 0.2);
+                    border-color: #C6EFCE;
+                    color: #006100;
+                }
+                
+                .dark-theme .alert-success {
+                    background-color: rgba(198, 239, 206, 0.1);
+                    color: #C6EFCE;
+                }
+                
+                .alert-warning {
+                    background-color: rgba(255, 235, 156, 0.2);
+                    border-color: #FFEB9C;
+                    color: #9C5700;
+                }
+                
+                .dark-theme .alert-warning {
+                    background-color: rgba(255, 235, 156, 0.1);
+                    color: #FFEB9C;
+                }
+                
+                .alert-danger {
+                    background-color: rgba(255, 199, 206, 0.2);
+                    border-color: #FFC7CE;
+                    color: #9C0006;
+                }
+                
+                .dark-theme .alert-danger {
+                    background-color: rgba(255, 199, 206, 0.1);
+                    color: #FFC7CE;
+                }
+                
+                .alert-info {
+                    background-color: rgba(217, 217, 217, 0.2);
+                    border-color: #D9D9D9;
+                    color: var(--text-primary);
+                }
+                
+                .dark-theme .alert-info {
+                    background-color: rgba(217, 217, 217, 0.1);
+                    color: var(--dark-text-primary);
+                }
+                
+                /* Style untuk chart container */
+                .chart-container {
+                    background-color: var(--surface);
+                    border-radius: var(--border-radius-md);
+                    padding: var(--spacing-md);
+                    border: 1px solid var(--border-color);
+                    box-shadow: var(--elevation-1);
+                }
+                
+                .dark-theme .chart-container {
+                    background-color: var(--dark-surface);
+                    border-color: var(--dark-border-color);
+                }
+                
+                /* Style untuk tabel */
+                .table {
+                    width: 100%;
+                    margin-bottom: var(--spacing-lg);
+                    border-collapse: collapse;
+                }
+                
+                .table th, .table td {
+                    padding: var(--spacing-sm);
+                    border-bottom: 1px solid var(--border-color);
+                    text-align: left;
+                }
+                
+                .table th {
+                    background-color: var(--surface-variant);
+                    font-weight: 500;
+                    color: var(--text-primary);
+                }
+                
+                .dark-theme .table th {
+                    background-color: var(--dark-surface-variant);
+                    color: var(--dark-text-primary);
+                }
+                
+                .table td {
+                    color: var(--text-secondary);
+                }
+                
+                .dark-theme .table td {
+                    color: var(--dark-text-secondary);
+                }
+                
+                .table-responsive {
+                    overflow-x: auto;
+                    border: 1px solid var(--border-color);
+                    border-radius: var(--border-radius-md);
+                    background-color: var(--surface);
+                }
+                
+                .dark-theme .table-responsive {
+                    border-color: var(--dark-border-color);
+                    background-color: var(--dark-surface);
+                }
+                
+                /* Style untuk sheet selector */
+                .sheet-selector {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .sheet-selector label {
+                    margin-right: var(--spacing-md);
+                    margin-bottom: 0;
+                    min-width: 100px;
+                }
+                
+                .sheet-selector select {
+                    flex: 1;
+                }
+                
+                /* Style untuk summary info */
+                .summary-info {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: var(--spacing-lg);
+                    margin-top: var(--spacing-md);
+                }
+                
+                .summary-info p {
+                    margin: 0;
+                }
+                
+                @media (max-width: 768px) {
+                    .summary-info {
+                        flex-direction: column;
+                        gap: var(--spacing-sm);
+                    }
+                }
+                
+                /* Styling untuk halaman */
+                body {
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                    transition: background-color 0.3s, color 0.3s;
+                }
+                
+                /* Animasi untuk tombol reset */
+                #resetButton {
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                #resetButton:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                }
+                
+                #resetButton:active {
+                    transform: translateY(0);
+                }
+                
+                #resetButton i {
+                    transition: transform 0.3s ease;
+                }
+                
+                #resetButton:hover i {
+                    transform: rotate(-180deg);
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Tambahkan tombol info ke navbar
+            const navbarNav = document.querySelector('.navbar-nav');
+            if (navbarNav) {
+                const infoItem = document.createElement('li');
+                infoItem.classList.add('nav-item');
+                infoItem.innerHTML = `
+                    <a href="#" class="nav-link" data-tooltip="Informasi">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Info</span>
+                    </a>
+                `;
+                navbarNav.appendChild(infoItem);
+                
+                // Tambahkan event listener untuk tombol info
+                const infoLink = infoItem.querySelector('.nav-link');
+                infoLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    infoModal.style.display = 'block';
+                });
+            }
+            
+            // Tutup modal saat tombol close diklik
+            if (closeModal) {
+                closeModal.addEventListener('click', function() {
+                    infoModal.style.display = 'none';
+                });
+            }
+            
+            // Tutup modal saat klik di luar modal
+            window.addEventListener('click', function(event) {
+                if (event.target === infoModal) {
+                    infoModal.style.display = 'none';
+                }
+            });
+            
+            // Tambahkan event listener untuk mengatasi masalah hover
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('mouseout', function() {
+                    // Reset inline styles yang mungkin menyebabkan masalah hover
+                    this.style.backgroundColor = '';
+                    this.style.boxShadow = '';
+                    this.style.transform = '';
+                    this.style.color = '';
+                });
+            });
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('mouseout', function() {
+                    this.style.backgroundColor = '';
+                    this.style.color = '';
+                });
+            });
+            
+            const themeToggle = document.querySelector('.theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('mouseout', function() {
+                    this.style.transform = '';
+                    this.style.boxShadow = '';
+                });
+            }
+
+            // Tambahkan event listener pada dokumen untuk mendeteksi masalah dropdown
+            document.addEventListener('DOMContentLoaded', function() {
+                // Verifikasi awal setelah halaman dimuat
+                setTimeout(() => {
+                    verifyProcessTypeDropdown();
+                }, 1000);
+                
+                // Fungsi untuk memverifikasi dan memperbaiki dropdown jenis proses
+                function verifyProcessTypeDropdown() {
+                    const processTypeSelect = document.getElementById('processType');
+                    
+                    if (processTypeSelect) {
+                        // Cek apakah dropdown disabled
+                        if (processTypeSelect.disabled) {
+                            console.warn('Jenis proses dropdown terdeteksi disabled, memperbaiki...');
+                            processTypeSelect.disabled = false;
+                        }
+                        
+                        // Tambahkan click handler untuk memastikan dapat diklik
+                        processTypeSelect.addEventListener('click', function() {
+                            if (this.disabled) {
+                                console.warn('Dropdown masih disabled saat diklik, memperbaiki...');
+                                this.disabled = false;
+                            }
+                        });
+                        
+                        // Tambahkan focus handler juga
+                        processTypeSelect.addEventListener('focus', function() {
+                            if (this.disabled) {
+                                console.warn('Dropdown masih disabled saat focus, memperbaiki...');
+                                this.disabled = false;
+                            }
+                        });
+                    }
+                }
+                
+                // Tambahkan event listener untuk reset button juga
+                if (resetButton) {
+                    resetButton.addEventListener('mouseup', function() {
+                        // Setelah reset, verifikasi dropdown setelah operasi reset selesai
+                        setTimeout(() => {
+                            verifyProcessTypeDropdown();
+                        }, 200);
+                    });
+                }
+            });
+        });
+
+        // Fungsi untuk mendapatkan mapping marketplace dari API
+        async function fetchMarketplaceMappings() {
+            try {
+                const response = await fetch('/api/shop_mappings');
+                
+                // Jika respons tidak OK (misalnya 401 Unauthorized), kembalikan array kosong
+                if (!response.ok) {
+                    console.warn('Tidak dapat mengambil data mapping marketplace: ' + response.statusText);
+                    return [];
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    return result.data;
+                } else {
+                    console.error('Error fetching marketplace mappings:', result.error);
+                    return [];
+                }
+            } catch (error) {
+                console.error('Error fetching marketplace mappings:', error);
+                return [];
+            }
+        }
+    </script>
+</body>
+</html> 

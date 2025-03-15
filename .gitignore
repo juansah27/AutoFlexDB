@@ -1,0 +1,39 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Log files
+*.log
+
+# Upload and output directories - data only, keep the directories
+uploads/*
+!uploads/.gitkeep
+output/*
+!output/.gitkeep
+temp/*
+!temp/.gitkeep
+
+# Database
+database/*
+!database/.gitkeep
+
+# Certificate files
+*.pem
+
+# Large files and backup files
+app_temp.txt
+app_backup.py
+
+# IDE specific files
+.vscode/
+.idea/
+
+# OS specific files
+.DS_Store
+Thumbs.db 

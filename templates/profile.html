@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Pengguna - All In One Setting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/onboarding.css') }}">
+    <style>
+        .profile-section {
+            margin-bottom: 20px;
+        }
+        
+        .profile-info {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .profile-avatar {
+            background-color: #222;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .profile-avatar i {
+            font-size: 40px;
+            color: var(--accent-color);
+        }
+        
+        .profile-details {
+            flex: 1;
+        }
+        
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 5px solid #333;
+            border-radius: 50%;
+            border-top: 5px solid var(--accent-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .form-divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0 15px;
+            color: #777;
+        }
+        
+        .form-divider:before,
+        .form-divider:after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #444;
+        }
+        
+        .form-divider:before {
+            margin-right: 10px;
+        }
+        
+        .form-divider:after {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-user-circle"></i>
+                <h1>Profil Pengguna</h1>
+            </div>
+            <div class="actions">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Kembali ke Beranda
+                </a>
+            </div>
+        </header>
+
+        <main>
+            <div class="card profile-section" id="profileInfo">
+                <h2><i class="fas fa-info-circle"></i> Informasi Akun</h2>
+                <div class="loading-indicator">
+                    <div class="spinner"></div>
+                    <p>Memuat informasi...</p>
+                </div>
+            </div>
+            
+            <div class="card profile-form-section">
+                <h2><i class="fas fa-edit"></i> Edit Profil</h2>
+                
+                <div id="formMessage" class="message" style="display: none;"></div>
+                
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="name">Nama Lengkap</label>
+                        <input type="text" id="name" name="name" placeholder="Masukkan nama lengkap">
+                    </div>
+                    
+                    <div class="form-divider">
+                        <span>Ganti Password</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="currentPassword">Password Saat Ini</label>
+                        <input type="password" id="currentPassword" name="currentPassword" placeholder="Masukkan password saat ini">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">Password Baru</label>
+                        <input type="password" id="newPassword" name="newPassword" placeholder="Masukkan password baru">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Konfirmasi Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Konfirmasi password baru">
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan Perubahan
+                        </button>
+                        <button type="reset" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tambahkan bagian pengaturan tambahan -->
+            <div class="card profile-form-section">
+                <h2><i class="fas fa-cog"></i> Pengaturan Tambahan</h2>
+                
+                <div class="form-divider">
+                    <span>Pengaturan Tampilan</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tour Pengenalan:</label>
+                    <p class="help-text">Reset tour pengenalan untuk melihatnya lagi saat Anda kembali ke halaman utama.</p>
+                    <button id="resetOnboardingBtn" type="button" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Reset Tour Pengenalan
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Dibuat Oleh Handiyan Juansah &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileInfo = document.getElementById('profileInfo');
+            const profileForm = document.getElementById('profileForm');
+            const formMessage = document.getElementById('formMessage');
+            const nameInput = document.getElementById('name');
+            const currentPasswordInput = document.getElementById('currentPassword');
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            // Load profile data
+            fetch('/api/profile')
+                .then(response => response.json())
+                .then(data => {
+                    // Remove loading indicator
+                    const loadingIndicator = profileInfo.querySelector('.loading-indicator');
+                    if (loadingIndicator) {
+                        loadingIndicator.remove();
+                    }
+                    
+                    if (data.success && data.data) {
+                        const profileData = data.data;
+                        
+                        // Create profile info HTML
+                        const infoHTML = `
+                            <div class="profile-info">
+                                <div class="profile-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="profile-details">
+                                    <div class="detail-item">
+                                        <span class="label">Username:</span>
+                                        <span class="value">${profileData.username}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Nama:</span>
+                                        <span class="value">${profileData.name}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Role:</span>
+                                        <span class="value">${profileData.role}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Dibuat pada:</span>
+                                        <span class="value">${profileData.created_at}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Append info to the profile section
+                        profileInfo.insertAdjacentHTML('beforeend', infoHTML);
+                        
+                        // Pre-fill the form
+                        nameInput.value = profileData.name;
+                    } else {
+                        profileInfo.innerHTML += `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Gagal memuat data profil: ${data.error || 'Terjadi kesalahan'}</span>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    profileInfo.innerHTML += `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Terjadi kesalahan: ${error.message}</span>
+                        </div>
+                    `;
+                });
+            
+            // Handle form submission
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Simple validation
+                if (newPasswordInput.value !== confirmPasswordInput.value) {
+                    showMessage('error', 'Konfirmasi password tidak cocok');
+                    return;
+                }
+                
+                // Prepare data
+                const data = {
+                    name: nameInput.value,
+                    current_password: currentPasswordInput.value,
+                    new_password: newPasswordInput.value
+                };
+                
+                // Only include passwords if they are filled
+                if (!data.current_password && !data.new_password) {
+                    delete data.current_password;
+                    delete data.new_password;
+                } else if (!data.current_password || !data.new_password) {
+                    showMessage('error', 'Silakan isi kedua field password');
+                    return;
+                }
+                
+                // Send update request
+                fetch('/api/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('success', result.message);
+                        
+                        // Clear password fields
+                        currentPasswordInput.value = '';
+                        newPasswordInput.value = '';
+                        confirmPasswordInput.value = '';
+                        
+                        // Reload profile data after 1 second
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showMessage('error', result.error || 'Gagal memperbarui profil');
+                    }
+                })
+                .catch(error => {
+                    showMessage('error', `Terjadi kesalahan: ${error.message}`);
+                });
+            });
+            
+            // Helper function to show messages
+            function showMessage(type, text) {
+                formMessage.className = type === 'success' ? 'message success-message' : 'message error-message';
+                formMessage.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${text}</span>
+                    <button class="close-message"><i class="fas fa-times"></i></button>
+                `;
+                formMessage.style.display = 'flex';
+                
+                // Add event listener to close button
+                const closeBtn = formMessage.querySelector('.close-message');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        formMessage.style.display = 'none';
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (formMessage.style.display !== 'none') {
+                        formMessage.style.display = 'none';
+                    }
+                }, 5000);
+            }
+            
+            // Tambahkan event listener untuk tombol reset onboarding
+            const resetOnboardingBtn = document.getElementById('resetOnboardingBtn');
+            if (resetOnboardingBtn) {
+                resetOnboardingBtn.addEventListener('click', function() {
+                    // Hapus data onboarding dari localStorage
+                    localStorage.removeItem('onboardingCompleted');
+                    // Tampilkan pesan sukses
+                    showMessage('success', 'Tour pengenalan telah direset. Anda akan melihat tour pada kunjungan berikutnya ke halaman utama.');
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
