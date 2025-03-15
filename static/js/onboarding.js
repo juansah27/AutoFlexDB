@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 id: 'welcome',
                 title: 'Selamat Datang!',
-                text: '<p><strong class="tour-highlight">All In One Setting</strong> membantu Anda memproses file Excel dengan mudah dan cepat.</p><p>Mari pelajari fitur utama aplikasi ini!</p>',
+                text: '<p><strong class="tour-highlight">AutoFlexDB</strong> membantu Anda memproses file Excel dengan mudah dan cepat.</p><p>Mari pelajari fitur utama aplikasi ini!</p>',
                 buttons: [
                     {
                         text: 'Lewati',
